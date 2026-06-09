@@ -1,0 +1,14 @@
+[Unit]
+Description=SmartVendo+ Admin Dashboard with Ngrok
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/dashboard
+ExecStart=/home/pi/dashboard/start_admin.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
