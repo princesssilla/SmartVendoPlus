@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- Add these lines after your existing styles -->
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+<script src="{{ url_for('static', filename='js/global.js') }}"></script>
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=800, height=480, initial-scale=1, user-scalable=no" />
+  <title>SmartVendo+</title>
+  <meta name="theme-color" content="#16571a">
+  <style>
+    /* Reset + touch-friendly defaults */
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      -webkit-tap-highlight-color: transparent; 
+    }
+    html, body { 
+      height: 100%; 
+      width: 100%; 
+    }
+    html, body { 
+      touch-action: manipulation; 
+      -webkit-user-select: none; 
+      user-select: none; 
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+      height: 100vh;
+      width: 100vw;
+      background-color: #16610e;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 70px;
+      padding-left: 20px;
+      padding-right: 20px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow: hidden;
+    }
+
+    /* Main Container */
+    .main-container {
+      background-color: #a0c878;
+      border-radius: 16px;
+      padding: 40px 50px;
+      width: 100%;
+      max-width: 850px;
+      min-height: 400px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+      display: flex;
+      flex-direction: column;
+      animation: fadeInUp 0.6s ease-out;
+      border: 3px solid #8ab86a;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Professional header with logo and title */
+    .welcome-header {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      margin-bottom: 40px; /* Increased margin for better spacing */
+      padding-bottom: 10px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+      gap: 30px;
+    }
+
+    /* Logo Container */
+    .logo-container {
+      width: 150px;
+      height: 150px;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .logo-container img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    /* Welcome Text */
+    .welcome-text {
+      flex: 1;
+    }
+
+    .welcome-line-1 {
+      font-size: 36px;
+      font-weight: 800;
+      color: #0a3a0a;
+      line-height: 1;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .welcome-line-2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1e5a1e;
+      line-height: 1.1;
+    }
+
+    /* Login Options Container */
+    .options-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+      margin-bottom: 30px;
+      animation: slideUp 0.5s ease-out 0.2s both;
+    }
+
+    /* Professional Button Styles */
+    .option-btn {
+      appearance: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 22px;
+      padding: 20px 30px;
+      border-radius: 12px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .option-btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.6s;
+    }
+
+    .option-btn:hover::after {
+      left: 100%;
+    }
+
+    .option-btn:hover, 
+    .option-btn:focus {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .option-btn:active {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    /* ID Login Button */
+    .option-btn.id-login {
+      background: linear-gradient(135deg, #0a3a0a, #16610e);
+      color: white;
+      border: 3px solid #0f4a0a;
+    }
+
+    .option-btn.id-login:hover {
+      background: linear-gradient(135deg, #16610e, #1e7a14);
+    }
+
+    /* Sign Up Button */
+    .option-btn.signup {
+      background: linear-gradient(135deg, #ffffff, #f8fff8);
+      color: #0a3a0a;
+      border: 3px solid #8bc34a;
+    }
+
+    .option-btn.signup:hover {
+      background: linear-gradient(135deg, #ffffff, #ffffff);
+    }
+
+    /* Professional Back Button */
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: white;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+      z-index: 100;
+      font-weight: bold;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateX(-2px);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Professional Loading Overlay */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(22, 97, 14, 0.97);
+      color: #fff;
+      font-size: 20px;
+      z-index: 999;
+      backdrop-filter: blur(12px);
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .overlay.show { 
+      display: flex; 
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s linear infinite;
+    }
+
+    /* Professional Animations */
+    @keyframes fadeInUp {
+      from { 
+        opacity: 0; 
+        transform: translateY(30px); 
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0); 
+      }
+    }
+
+    @keyframes slideUp {
+      from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0); 
+      }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Decorative elements */
+    .corner-decor {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      filter: blur(20px);
+      z-index: -1;
+    }
+    
+    .corner-decor.top-left {
+      top: -40px;
+      left: -40px;
+    }
+    
+    .corner-decor.bottom-right {
+      bottom: -40px;
+      right: -40px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-height: 500px) {
+      .main-container {
+        padding: 25px 35px;
+        max-width: 90%;
+      }
+      .welcome-header {
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+      }
+      .logo-container {
+        width: 80px;
+        height: 80px;
+      }
+      .welcome-line-1 {
+        font-size: 28px;
+      }
+      .welcome-line-2 {
+        font-size: 22px;
+      }
+      .options-container {
+        gap: 18px;
+        margin-bottom: 20px;
+      }
+      .option-btn {
+        padding: 16px 24px;
+        font-size: 18px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .main-container {
+        padding: 30px 35px;
+        max-width: 95%;
+      }
+      .welcome-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+      }
+      .welcome-text {
+        text-align: center;
+      }
+      .back-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 20px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .main-container {
+        padding: 25px;
+        border-radius: 12px;
+      }
+      .welcome-line-1 {
+        font-size: 24px;
+      }
+      .welcome-line-2 {
+        font-size: 20px;
+      }
+      .option-btn {
+        padding: 16px 20px;
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Back Button -->
+  <button class="back-btn" onclick="goBack()" aria-label="Go back">←</button>
+
+  <!-- Decorative elements -->
+  <div class="corner-decor top-left"></div>
+  <div class="corner-decor bottom-right"></div>
+
+  <!-- Main Container -->
+  <div class="main-container">
+    <!-- Professional Header with Logo on Left -->
+    <div class="welcome-header">
+      <div class="logo-container">
+        <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="SmartVendo+ Logo">
+      </div>
+      
+      <div class="welcome-text">
+        <div class="welcome-line-1">WELCOME</div>
+        <div class="welcome-line-2">TO THE SMARTVENDO+</div>
+      </div>
+    </div>
+
+    <!-- Login Options -->
+    <div class="options-container">
+      <button id="idLogin" class="option-btn id-login" type="button">
+        LOGIN USING YOUR ID
+      </button>
+      
+      <button id="signupBtn" class="option-btn signup" type="button">
+        SIGN-UP
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="overlay" class="overlay" role="status" aria-live="polite">
+    <div class="loading-spinner"></div>
+    <div id="overlay-message">Processing...</div>
+  </div>
+
+  <script>
+(function () {
+  const idLoginBtn = document.getElementById('idLogin');
+  const signupBtn = document.getElementById('signupBtn');
+  const overlay = document.getElementById('overlay');
+  const overlayMessage = document.getElementById('overlay-message');
+  
+  // Prevent context menu
+  window.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  // Show overlay with message
+  function showOverlay(message = 'Processing...') {
+    console.log('Overlay:', message);
+    overlayMessage.textContent = message;
+    overlay.classList.add('show');
+  }
+
+  // Hide overlay
+  window.hideOverlay = function() {
+    console.log('Hiding overlay');
+    overlay.classList.remove('show');
+  };
+
+  // ID Login Handler
+  function handleIdLogin() {
+    console.log('ID Login clicked - Redirecting to login page');
+    showOverlay('Redirecting to login...');
+    
+    // Redirect to id-login page
+    setTimeout(() => {
+      window.location.href = '/id-login';
+    }, 800);
+  }
+
+  // Sign Up Handler
+  function handleSignUp() {
+    console.log('Sign Up clicked - Redirecting to signup page');
+    showOverlay('Redirecting to signup...');
+    
+    // Redirect to signup-rfid page
+    setTimeout(() => {
+      window.location.href = '/signup';
+    }, 800);
+  }
+
+  // Back function - MADE GLOBAL
+  window.goBack = function() {
+    showOverlay('Returning to home...');
+    
+    setTimeout(() => {
+      window.location.href = '/';
+    }, 600);
+  };
+
+  // Event Listeners - ADDED ERROR CHECKING
+  if (idLoginBtn) {
+    idLoginBtn.addEventListener('click', handleIdLogin);
+    idLoginBtn.addEventListener('touchstart', handleIdLogin, { passive: true });
+  } else {
+    console.error('ID Login button not found');
+  }
+
+  if (signupBtn) {
+    signupBtn.addEventListener('click', handleSignUp);
+    signupBtn.addEventListener('touchstart', handleSignUp, { passive: true });
+  } else {
+    console.error('Signup button not found');
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'F2') {
+      e.preventDefault();
+      console.log('[Admin] F2 pressed - logging in as admin');
+      showOverlay('Logging in as admin...');
+      
+      // Create admin user session
+      const adminUser = {
+        rfid_uid: 'ADMIN-001',
+        student_id: 'ADMIN',
+        email: 'admin@smartvendo.com',
+        balance: 999999,
+        expiration_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        is_admin: true
+      };
+      
+      localStorage.setItem('sv_current_user', JSON.stringify(adminUser));
+      localStorage.setItem('sv_current_session', 'active');
+      
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 800);
+      return;
+    }
+
+    // F3 = Simulate invalid deposit (redirect to dashboard first)
+    if (e.key === 'F3') {
+      e.preventDefault();
+      console.log('[Test] F3 pressed - Going to dashboard to test invalid deposit');
+      showOverlay('Going to dashboard...');
+      
+      // Ensure user is logged in
+      const adminUser = {
+        rfid_uid: 'TEST-001',
+        student_id: 'TEST',
+        email: 'test@smartvendo.com',
+        balance: 100,
+        expiration_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+      };
+      
+      localStorage.setItem('sv_current_user', JSON.stringify(adminUser));
+      localStorage.setItem('sv_current_session', 'active');
+      
+      setTimeout(() => {
+        window.location.href = '/dashboard?action=test_invalid';
+      }, 800);
+      return;
+    }
+
+    // F4 = Simulate valid deposit (redirect to dashboard first)
+    if (e.key === 'F4') {
+      e.preventDefault();
+      console.log('[Test] F4 pressed - Going to dashboard to test valid deposit');
+      showOverlay('Going to dashboard...');
+      
+      // Ensure user is logged in
+      const adminUser = {
+        rfid_uid: 'TEST-002',
+        student_id: 'TEST',
+        email: 'test@smartvendo.com',
+        balance: 100,
+        expiration_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+      };
+      
+      localStorage.setItem('sv_current_user', JSON.stringify(adminUser));
+      localStorage.setItem('sv_current_session', 'active');
+      
+      setTimeout(() => {
+        window.location.href = '/dashboard?action=test_valid';
+      }, 800);
+      return;
+    }
+
+    // F5 = Start shredding
+    if (e.key === 'F5') {
+      e.preventDefault();
+      console.log('[Test] F5 pressed - Starting shredding');
+      window.location.href = '/shredding';
+      return;
+    }
+
+    // F6 = Return to welcome (no-op since already here)
+    if (e.key === 'F6') {
+      e.preventDefault();
+      console.log('[Test] F6 pressed - Already on welcome page');
+      return;
+    }
+    
+    if (e.key === '1' || e.key === 'l') {
+      if (idLoginBtn) {
+        idLoginBtn.focus();
+        handleIdLogin();
+      }
+    } else if (e.key === '2' || e.key === 's') {
+      if (signupBtn) {
+        signupBtn.focus();
+        handleSignUp();
+      }
+    } else if (e.key === 'Escape') {
+      goBack();
+    }
+  });
+
+  // Initialize when page loads
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Welcome page loaded');
+    
+    // Add click event to back button
+    const backBtn = document.querySelector('.back-btn');
+    if (backBtn) {
+      backBtn.addEventListener('click', goBack);
+      backBtn.addEventListener('touchstart', goBack, { passive: true });
+    }
+    
+    // Ensure overlay is hidden on load
+    hideOverlay();
+    
+    // Log button status for debugging
+    console.log('Buttons found:', {
+      idLogin: !!idLoginBtn,
+      signup: !!signupBtn,
+      backBtn: !!backBtn
+    });
+  });
+
+  // Emergency fallback: if buttons still don't work after 2 seconds, add direct href
+  setTimeout(() => {
+    if (idLoginBtn && !idLoginBtn.onclick) {
+      idLoginBtn.setAttribute('onclick', "window.location.href='/id-login'");
+      console.log('Added fallback onclick to ID login button');
+    }
+    if (signupBtn && !signupBtn.onclick) {
+      signupBtn.setAttribute('onclick', "window.location.href='/signup'");
+      console.log('Added fallback onclick to Signup button');
+    }
+  }, 2000);
+
+})();
+</script>
+
+</body>
+</html>

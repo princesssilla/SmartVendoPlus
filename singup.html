@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+<head>
+   <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+  <!-- Add these lines after your existing styles -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+<script src="{{ url_for('static', filename='js/global.js') }}"></script>
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=800, height=480, initial-scale=1, user-scalable=no" />
+  <title>SmartVendo+</title>
+  <meta name="theme-color" content="#16571a">
+  <style>
+    /* Reset + touch-friendly defaults */
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      -webkit-tap-highlight-color: transparent; 
+    }
+    html, body { 
+      height: 100%; 
+      width: 100%; 
+    }
+    html, body { 
+      touch-action: manipulation; 
+      -webkit-user-select: none; 
+      user-select: none; 
+    }
+    body {
+      font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      height: 100vh;
+      width: 100vw;
+      background-color: #16610e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Professional Container */
+    .agreement-container {
+      background-color: #a0c878;
+      border-radius: 20px;
+      padding: 50px 60px;
+      width: 100%;
+      max-width: 800px;
+      max-height: 90vh;
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      animation: fadeInScale 0.5s ease-out;
+      border: 4px solid #8ab86a;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Decorative corner accents */
+    .agreement-container::before,
+    .agreement-container::after {
+      content: '';
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      z-index: 0;
+    }
+
+    .agreement-container::before {
+      top: -75px;
+      left: -75px;
+    }
+
+    .agreement-container::after {
+      bottom: -75px;
+      right: -75px;
+    }
+
+    /* Header */
+    .agreement-header {
+      text-align: center;
+      margin-bottom: 30px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .agreement-logo {
+      width: 80px;
+      height: auto;
+      margin: 0 auto 20px;
+      display: block;
+    }
+
+    .agreement-title {
+      font-size: 32px;
+      font-weight: 800;
+      color: #0a3a0a;
+      margin-bottom: 15px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .agreement-subtitle {
+      font-size: 18px;
+      color: #2d5a27;
+      font-weight: 500;
+    }
+
+    /* Agreement Content */
+    .agreement-content {
+      flex: 1;
+      overflow-y: auto;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 30px;
+      position: relative;
+      z-index: 1;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+      border: 2px solid #8ab86a;
+    }
+
+    .agreement-text {
+      color: #0a3a0a;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    .agreement-text h1 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: #0a3a0a;
+      text-align: center;
+    }
+
+    .agreement-text h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 25px 0 15px 0;
+      color: #16610e;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #8ab86a;
+    }
+
+    .agreement-text p {
+      margin-bottom: 15px;
+      text-align: justify;
+    }
+
+    .agreement-text .highlight {
+      background: #e8ffe8;
+      padding: 10px;
+      border-radius: 8px;
+      border-left: 4px solid #16610e;
+      margin: 20px 0;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      gap: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .agreement-btn {
+      flex: 1;
+      appearance: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 20px;
+      padding: 22px 30px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .agreement-btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.6s;
+    }
+
+    .agreement-btn:hover::after {
+      left: 100%;
+    }
+
+    .agreement-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .agreement-btn:active {
+      transform: translateY(-1px);
+    }
+
+    .agree-btn {
+      background: linear-gradient(135deg, #0a3a0a, #16610e);
+      color: white;
+      border: 3px solid #0f4a0a;
+    }
+
+    .agree-btn:hover {
+      background: linear-gradient(135deg, #16610e, #1e7a14);
+    }
+
+    .decline-btn {
+      background: linear-gradient(135deg, #ffffff, #f8fff8);
+      color: #0a3a0a;
+      border: 3px solid #8bc34a;
+    }
+
+    .decline-btn:hover {
+      background: linear-gradient(135deg, #ffffff, #ffffff);
+    }
+
+    /* Back Button */
+    .back-btn {
+      position: fixed;
+      top: 25px;
+      left: 25px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      width: 55px;
+      height: 55px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: white;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+      z-index: 100;
+      font-weight: bold;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateX(-3px);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(22, 97, 14, 0.98);
+      z-index: 1000;
+      backdrop-filter: blur(15px);
+      flex-direction: column;
+      gap: 30px;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .loading-overlay.show {
+      display: flex;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s linear infinite;
+    }
+
+    .loading-text {
+      font-size: 20px;
+      color: white;
+      font-weight: 600;
+    }
+
+    /* Animations */
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Scrollbar Styling */
+    .agreement-content::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .agreement-content::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 4px;
+    }
+
+    .agreement-content::-webkit-scrollbar-thumb {
+      background: #8ab86a;
+      border-radius: 4px;
+    }
+
+    .agreement-content::-webkit-scrollbar-thumb:hover {
+      background: #16610e;
+    }
+
+    /* Responsive Design */
+    @media (max-height: 600px) {
+      .agreement-container {
+        padding: 30px 40px;
+        max-width: 90%;
+      }
+      
+      .agreement-header {
+        margin-bottom: 20px;
+      }
+      
+      .agreement-logo {
+        width: 60px;
+        margin-bottom: 15px;
+      }
+      
+      .agreement-title {
+        font-size: 24px;
+      }
+      
+      .agreement-subtitle {
+        font-size: 16px;
+      }
+      
+      .agreement-content {
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      
+      .agreement-text {
+        font-size: 14px;
+      }
+      
+      .agreement-btn {
+        padding: 18px 25px;
+        font-size: 18px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 15px;
+      }
+      
+      .agreement-container {
+        padding: 40px 30px;
+        max-width: 95%;
+      }
+      
+      .agreement-title {
+        font-size: 28px;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+      
+      .back-btn {
+        top: 15px;
+        left: 15px;
+        width: 50px;
+        height: 50px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .agreement-container {
+        padding: 30px 20px;
+        border-radius: 16px;
+      }
+      
+      .agreement-title {
+        font-size: 22px;
+      }
+      
+      .agreement-btn {
+        padding: 16px 20px;
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Back Button -->
+  <button class="back-btn" onclick="goBack()" aria-label="Go back">←</button>
+
+  <!-- Main Agreement Container -->
+  <div class="agreement-container">
+    <!-- Header -->
+    <div class="agreement-header">
+      <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="SmartVendo+ Logo" class="agreement-logo">
+      
+    </div>
+
+    <!-- Agreement Content -->
+    <div class="agreement-content">
+      <div class="agreement-text">
+        <h1>USER AGREEMENT</h1>
+        
+        <p>This Agreement outlines the terms and conditions for the use of the SmartVendo+ system at National University - Dasmariñas. By signing up and continuing to use the system, you acknowledge that you have read, understood, and agreed to comply with the following:</p>
+        
+        <h2>REGISTRATION AND LOGIN</h2>
+        
+        <p>Users must register using their Student ID through the SmartVendo+ RFID reader. Registration is linked to the RFID Student ID and is used for login and tracking of activities</p>
+        
+        <div class="highlight">
+          <p><strong>Important:</strong> Registration is valid for three (3) months, corresponding to an academic term. To earn points again in a new academic term, users must create new account, as points reset every term and are non-transferable.</p>
+        </div>
+        
+        <p>By selecting "I Agree", you confirm that you have read, understood, and accepted the above terms and conditions for using SmartVendo+.</p>
+        
+        <p style="text-align: center; margin-top: 30px; font-weight: 600;">
+          National University Dasmariñas<br>
+          SmartVendo+ System
+        </p>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button id="declineBtn" class="agreement-btn decline-btn">DECLINE</button>
+      <button id="agreeBtn" class="agreement-btn agree-btn">I AGREE</button>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Processing...</div>
+  </div>
+
+  <script>
+    (function () {
+      const agreeBtn = document.getElementById('agreeBtn');
+      const declineBtn = document.getElementById('declineBtn');
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      
+      // Prevent context menu
+      window.addEventListener('contextmenu', (e) => e.preventDefault());
+      
+      // I Agree button click
+      agreeBtn.addEventListener('click', function() {
+        showLoading('Processing agreement...');
+        
+        setTimeout(() => {
+          // Store agreement acceptance in localStorage
+          localStorage.setItem('sv_agreement_accepted', 'true');
+          localStorage.setItem('sv_agreement_date', new Date().toISOString());
+          
+          // Redirect to RFID registration page
+          window.location.href = '/signup-rfid';
+        }, 1000);
+      });
+      
+      // Decline button click
+      declineBtn.addEventListener('click', function() {
+        showLoading('Returning to login...');
+        
+        setTimeout(() => {
+          window.location.href = '/welcome';
+        }, 800);
+      });
+      
+      // Show loading overlay
+      function showLoading(message) {
+        const loadingText = loadingOverlay.querySelector('.loading-text');
+        loadingText.textContent = message;
+        loadingOverlay.classList.add('show');
+      }
+      
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          goBack();
+        } else if (e.key === 'y' || e.key === 'Y') {
+          agreeBtn.click();
+        } else if (e.key === 'n' || e.key === 'N') {
+          declineBtn.click();
+        }
+      });
+      
+    })();
+    
+    // Back function
+    function goBack() {
+      const loadingOverlay = document.getElementById('loadingOverlay');
+      const loadingText = loadingOverlay.querySelector('.loading-text');
+      loadingText.textContent = 'Returning to login...';
+      loadingOverlay.classList.add('show');
+      
+      setTimeout(() => {
+        window.location.href = '/welcome';
+      }, 800);
+    }
+  </script>
+
+</body>
+</html>

@@ -1,170 +1,149 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=800, height=480, initial-scale=1, user-scalable=no">
-    <title>SmartVendo+ Admin</title>
-    <meta name="theme-color" content="#16571a">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        html, body { height: 100%; width: 100%; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
-        
-        body {
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            height: 100vh;
-            width: 100vw;
-            background-color: #16610e;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            overflow: hidden;
-        }
-        
-        .login-container {
-            background-color: #a0c878;
-            border-radius: 20px;
-            padding: 40px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            animation: fadeInScale 0.5s ease-out;
-            border: 4px solid #8ab86a;
-        }
-        
-        .login-logo {
-            width: 120px;
-            height: auto;
-            margin-bottom: 20px;
-        }
-        
-        .login-title {
-            font-size: 36px;
-            font-weight: 800;
-            color: #0a3a0a;
-            margin-bottom: 10px;
-            text-align: center;
-        }
-        
-        .login-subtitle {
-            font-size: 18px;
-            color: #1e5a1e;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        
-        .input-group {
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        
-        .input-label {
-            font-size: 16px;
-            color: #0a3a0a;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        
-        .input-field {
-            width: 100%;
-            padding: 15px;
-            border-radius: 10px;
-            border: 2px solid #8ab86a;
-            background: rgba(255, 255, 255, 0.9);
-            font-size: 16px;
-            color: #0a3a0a;
-        }
-        
-        .login-btn {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #0a3a0a, #16610e);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        
-        .error-message {
-            color: #ff6b6b;
-            margin-top: 10px;
-            text-align: center;
-        }
-        
-        @keyframes fadeInScale {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-    </style>
+  <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+<script src="{{ url_for('static', filename='js/global.js') }}"></script>
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=800, height=480, initial-scale=1, user-scalable=no" />
+  <title>Layno</title>
+  <meta name="theme-color" content="#16571a">
+  <style>
+    /* Reset + touch-friendly defaults */
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; width: 100%; }
+    html, body, #root { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      height: 100vh;
+      width: 100vw;
+      background-color: #16610e; /* fallback green */
+      background-image: url("/static/images/background.png");
+      background-position: center 28%;
+      background-repeat: no-repeat;
+      background-size: contain;
+      display: flex;
+      align-items: flex-end;     /* position CTA toward bottom like your mock */
+      justify-content: center;
+      padding-bottom: 6vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      cursor: default;
+      overflow: hidden;
+    }
+
+    /* Blocker covers whole screen to ensure only CTA is interactive */
+    .blocker {
+      position: fixed;
+      inset: 0;
+      background: transparent;
+      z-index: 10;
+      pointer-events: auto;
+    }
+
+    /* CTA wrapper above the blocker */
+    .cta-wrapper {
+      z-index: 20;
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.02);
+      backdrop-filter: blur(2px);
+    }
+
+    /* Big, touch-friendly button — sized for a 7" touchscreen */
+    .cta {
+      appearance: none;
+      border: none;
+      background: white;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: clamp(20px, 7vw, 40px);
+      color: #071406;
+      padding: 30px 28px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+      transition: transform 140ms ease, box-shadow 140ms ease;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .cta:active { transform: scale(0.98); }
+    .cta:focus { outline: 3px solid rgba(255,255,255,0.10); transform: translateY(-2px); }
+
+    /* Transient overlay to indicate the press */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.45);
+      color: #fff;
+      font-size: 22px;
+      z-index: 999;
+      backdrop-filter: blur(3px);
+    }
+    .overlay.show { display: flex; }
+  </style>
 </head>
 <body>
-    <div class="login-container">
-        <img src="/static/images/logo1.png" alt="SmartVendo+ Logo" class="login-logo">
-        <h1 class="login-title">SMARTVENDO+</h1>
-        <div class="login-subtitle">ADMIN PORTAL</div>
-        
-        <div class="input-group">
-            <div class="input-label">Admin Email</div>
-            <input type="email" id="adminEmail" class="input-field" placeholder="admin@nu.edu.ph" value="admin@nu.edu.ph">
-        </div>
-        
-        <div class="input-group">
-            <div class="input-label">Password</div>
-            <input type="password" id="adminPassword" class="input-field" placeholder="Enter password" value="admin123">
-        </div>
-        
-        <div id="errorMessage" class="error-message"></div>
-        
-        <button id="loginBtn" class="login-btn">LOGIN</button>
-    </div>
-    
-    <script>
-        document.getElementById('loginBtn').addEventListener('click', async () => {
-            const email = document.getElementById('adminEmail').value;
-            const password = document.getElementById('adminPassword').value;
-            const errorElement = document.getElementById('errorMessage');
-            
-            if (!email || !password) {
-                errorElement.textContent = 'Please fill in all fields';
-                return;
-            }
-            
-            try {
-                const response = await fetch('/api/admin/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Store token and redirect
-                    localStorage.setItem('admin_token', data.token);
-                    localStorage.setItem('admin_email', data.email);
-                    window.location.href = '/dashboard';
-                } else {
-                    errorElement.textContent = data.error || 'Login failed';
-                }
-            } catch (error) {
-                errorElement.textContent = 'Connection error';
-            }
-        });
-        
-        // Enter key support
-        document.getElementById('adminPassword').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('loginBtn').click();
-            }
-        });
-    </script>
+  <!--
+    Save your provided image as "background.png" in the same folder as this index.html,
+    or update background-image in the CSS to point to your filename/URL.
+    The full-screen transparent blocker makes everything non-clickable except the button below.
+  -->
+
+  <div class="blocker" aria-hidden="true"></div>
+
+  <div class="cta-wrapper" aria-hidden="false">
+    <button id="tapStart" class="cta" aria-label="Tap to Start" type="button">Tap to Start</button>
+  </div>
+
+  <div id="overlay" class="overlay" role="status" aria-live="polite">Starting…</div>
+
+  <script>
+    (function () {
+      const btn = document.getElementById('tapStart');
+      const overlay = document.getElementById('overlay');
+
+      // Prevent context menu on long touch/press (helpful on a kiosk touchscreen)
+      window.addEventListener('contextmenu', (e) => e.preventDefault());
+
+      function startSequence() {
+  overlay.classList.add('show');
+  setTimeout(() => { 
+    overlay.textContent = 'Welcome to SmartVendo+!'; 
+  }, 600);
+  
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    // Redirect to the welcome page
+    window.location.href = '/welcome';
+  }, 1500);
+}
+
+      // Only the CTA receives events
+      btn.addEventListener('click', startSequence, { passive: true });
+
+      // keyboard / accessibility
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          startSequence();
+        }
+      });
+
+      // Safe-guard: clicks on blocker do nothing
+      document.querySelector('.blocker').addEventListener('click', (e) => {
+        e.stopPropagation();
+      }, { passive: true });
+    }());
+  </script>
+
+
 </body>
 </html>

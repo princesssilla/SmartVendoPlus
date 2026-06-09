@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- Add these lines after your existing styles -->
+  <link rel="stylesheet" href="/static/css/global.css">
+  <script src="/static/js/global.js"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=800, height=480, initial-scale=1, user-scalable=no" />
+  <title>SmartVendo+</title>
+  <meta name="theme-color" content="#16571a">
+  <style>
+    /* Reset + touch-friendly defaults */
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      -webkit-tap-highlight-color: transparent; 
+    }
+    html, body { 
+      height: 100%; 
+      width: 100%; 
+    }
+    html, body { 
+      touch-action: manipulation; 
+      -webkit-user-select: none; 
+      user-select: none; 
+    }
+   body {
+  font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  height: 100vh;
+  width: 100vw;
+  background-color: #16610e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px; /* Reduced from 20px */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  position: relative;
+}
+
+    /* Professional Container */
+    .complete-container {
+  background-color: #a0c878;
+  border-radius: 20px;
+   padding: 1px 30px 10px 30px;
+  width: 100%;
+  max-width: 600px; /* Slightly reduced max-width */
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeInScale 0.5s ease-out;
+  border: 4px solid #8ab86a;
+  position: relative;
+  overflow: hidden;
+}
+
+    /* Decorative corner accents */
+    .complete-container::before,
+    .complete-container::after {
+      content: '';
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      z-index: 0;
+    }
+
+    .complete-container::before {
+      top: -75px;
+      left: -75px;
+    }
+
+    .complete-container::after {
+      bottom: -75px;
+      right: -75px;
+    }
+
+    /* Header */
+    .complete-header {
+  text-align: center;
+  margin-bottom: 10px; /* Reduced from 40px */
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+   .complete-logo {
+  width: 60px; /* Reduced from 80px */
+  height: auto;
+  margin: 0 auto 10px; /* Reduced bottom margin */
+  display: block;
+}
+
+   .complete-title {
+  font-size: 28px; /* Reduced from 32px */
+  font-weight: 800;
+  color: #0a3a0a;
+  margin-bottom: 5px; /* Reduced from 10px */
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+    .complete-subtitle {
+  font-size: 16px; /* Reduced from 18px */
+  color: #2d5a27;
+  font-weight: 500;
+  line-height: 1.4;
+  max-width: 500px;
+  margin: 0 auto;
+}
+    /* Success Icon */
+    .success-icon {
+  font-size: 80px; /* Reduced from 120px */
+  margin: 1px 0; /* Set specific margins instead of 1px */
+   padding: 10px 30px 10px 30px;
+}
+
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+      }
+      40% {
+        transform: translateY(-30px);
+      }
+      60% {
+        transform: translateY(-15px);
+      }
+    }
+
+    /* Success Message */
+    .success-content {
+  text-align: center;
+  margin-bottom: 10px; /* Changed from 5px */
+  position: relative;
+  z-index: 1;
+}
+
+    .success-title {
+  font-size: 24px; /* Reduced from 28px */
+  font-weight: 700;
+  color: #0a3a0a;
+  margin-bottom: 1px; /* Reduced from 20px */
+}
+
+    .success-text {
+  font-size: 16px; /* Reduced from 18px */
+  color: #2d5a27;
+  margin-bottom: 20px; /* Reduced from 25px */
+  line-height: 1.5;
+}
+
+
+    /* Registration Details */
+    .registration-details {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      padding: 25px;
+      margin: 5px auto;
+      width: 100%;
+      max-width: 500px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      border: 2px solid #8ab86a;
+    }
+
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(138, 184, 106, 0.3);
+    }
+
+    .detail-item:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .detail-label {
+      font-size: 16px;
+      color: #2d5a27;
+      font-weight: 600;
+    }
+
+    .detail-value {
+      font-size: 16px;
+      color: #0a3a0a;
+      font-weight: 700;
+    }
+
+    .expiration-warning {
+      background: #fff8e8;
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 20px;
+      border: 2px solid #ffd166;
+      text-align: center;
+    }
+
+    .warning-icon {
+      font-size: 24px;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+
+    .warning-text {
+      font-size: 16px;
+      color: #8a6d3b;
+      font-weight: 600;
+    }
+
+    /* Action Button */
+    .action-button {
+      appearance: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 20px;
+      padding: 10px 30px 10px 30px;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0a3a0a, #16610e);
+      color: white;
+      border: 3px solid #0f4a0a;
+      min-width: 250px;
+    }
+
+    .action-button::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.6s;
+    }
+
+    .action-button:hover::after {
+      left: 100%;
+    }
+
+    .action-button:hover {
+      background: linear-gradient(135deg, #16610e, #1e7a14);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .action-button:active {
+      transform: translateY(-1px);
+    }
+
+    /* Countdown Timer */
+    .countdown-timer {
+      font-size: 16px;
+      color: #2d5a27;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(22, 97, 14, 0.98);
+      z-index: 1000;
+      backdrop-filter: blur(15px);
+      flex-direction: column;
+      gap: 30px;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .loading-overlay.show {
+      display: flex;
+    }
+
+    .loading-text {
+      font-size: 22px;
+      color: white;
+      font-weight: 600;
+    }
+
+    /* Animations */
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Responsive Design */
+    @media (max-height: 600px) {
+      .complete-container {
+        padding: 30px 40px;
+        max-width: 90%;
+      }
+      
+      .complete-header {
+        margin-bottom: 30px;
+      }
+      
+      .complete-logo {
+        width: 60px;
+        margin-bottom: 15px;
+      }
+      
+      .complete-title {
+        font-size: 24px;
+      }
+      
+      .complete-subtitle {
+        font-size: 16px;
+      }
+      
+      .success-icon {
+        font-size: 80px;
+        margin: 1px;
+        padding: 10px 30px 10px 30px;
+      }
+      
+      .success-title {
+        font-size: 22px;
+      }
+      
+      .registration-details {
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      
+      .action-button {
+        padding: 18px 40px;
+        font-size: 18px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 15px;
+      }
+      
+      .complete-container {
+        padding: 40px 30px;
+        max-width: 95%;
+      }
+      
+      .complete-title {
+        font-size: 28px;
+      }
+      
+      .success-title {
+        font-size: 24px;
+      }
+      
+      .detail-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 5px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .complete-container {
+        padding: 30px 20px;
+        border-radius: 16px;
+      }
+      
+      .complete-title {
+        font-size: 22px;
+      }
+      
+      .success-icon {
+        font-size: 40px;
+         padding: 10px 30px 10px 30px;
+      }
+      
+      .action-button {
+        padding: 16px 30px;
+        font-size: 18px;
+        min-width: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <div class="loading-text" id="loadingText">Processing registration...</div>
+  </div>
+
+  <!-- Main Complete Container -->
+  <div class="complete-container">
+    <!-- Header -->
+
+    <!-- Success Content -->
+    <div class="success-content">
+      <div class="success-title">Welcome to SmartVendo+!</div>
+      <div class="success-text">Your account has been created successfully</div>
+    </div>
+
+    <!-- Registration Details -->
+    <div class="registration-details">
+      <div class="detail-item">
+        <span class="detail-label">RFID Card ID:</span>
+        <span class="detail-value" id="cardId">Loading...</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Registration Date:</span>
+        <span class="detail-value" id="regDate">Loading...</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">Expiration Date:</span>
+        <span class="detail-value" id="expDate">Loading...</span>
+      </div>
+      
+      <div class="expiration-warning">
+        <span class="warning-icon"></span>
+        <span class="warning-text">Account valid for 3 months only</span>
+      </div>
+    </div>
+
+    <!-- Action Button -->
+    <button id="loginBtn" class="action-button">LOGIN NOW</button>
+    
+    <!-- Countdown Timer -->
+    <div class="countdown-timer" id="countdownTimer">Redirecting in 5 seconds...</div>
+  </div>
+
+ 
+ <script>
+    (function () {
+      const cardIdElement = document.getElementById('cardId');
+      const regDateElement = document.getElementById('regDate');
+      const expDateElement = document.getElementById('expDate');
+      const countdownTimer = document.getElementById('countdownTimer');
+      const loginBtn = document.getElementById('loginBtn');
+      
+      // Check if user has a pending RFID from the signup-rfid page
+      const pendingRfid = localStorage.getItem('sv_pending_rfid');
+      
+      if (!pendingRfid) {
+        // If no pending RFID, redirect to agreement
+        window.location.href = '/signup';
+        return;
+      }
+      
+      // Display the RFID
+      cardIdElement.textContent = pendingRfid;
+      
+      const regDate = new Date();
+      regDateElement.textContent = regDate.toLocaleDateString() + ' ' + regDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      
+      // Calculate expiration date (3 months from now)
+      const expDate = new Date();
+      expDate.setMonth(expDate.getMonth() + 2);
+      expDateElement.textContent = expDate.toLocaleDateString();
+      
+      // Register the RFID with the server
+      registerRfid(pendingRfid);
+      
+      // Countdown timer
+      let countdown = 60;
+      const countdownInterval = setInterval(() => {
+        countdown--;
+        countdownTimer.textContent = `Redirecting in ${countdown} seconds...`;
+        
+        if (countdown <= 0) {
+          clearInterval(countdownInterval);
+          redirectToLogin();
+        }
+      }, 1000);
+      
+      // Login button click
+      loginBtn.addEventListener('click', function() {
+        clearInterval(countdownInterval);
+        redirectToLogin();
+      });
+      
+      // Keyboard shortcut
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          clearInterval(countdownInterval);
+          redirectToLogin();
+        }
+      });
+      
+      function redirectToLogin() {
+        // Clear pending RFID from localStorage
+        localStorage.removeItem('sv_pending_rfid');
+        // Redirect to ID login page
+        window.location.href = '/id-login';
+      }
+      
+      async function registerRfid(rfidUid) {
+        try {
+          // Send registration data to server
+          const response = await fetch('/api/signup', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              rfid_uid: rfidUid
+              // Let the server generate student_id and email
+            })
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            console.error('Registration failed:', data.error);
+            // Don't show alert here, just log the error
+            // The user can still proceed since the RFID is in localStorage
+          } else {
+            console.log('Registration successful:', data);
+          }
+          
+        } catch (error) {
+          console.error('Registration error:', error);
+          // Don't show alert for network errors
+          // The user can still proceed
+        }
+      }
+      
+    })();
+  </script>
+
+
+</body>
+</html>

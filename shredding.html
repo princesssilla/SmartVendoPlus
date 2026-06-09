@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+  <script src="{{ url_for('static', filename='js/global.js') }}"></script>
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=800, height=480, initial-scale=1, user-scalable=no" />
+  <title>SmartVendo+ - Shredding</title>
+  <meta name="theme-color" content="#16571a">
+  <style>
+    /* Reset + touch-friendly defaults */
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      -webkit-tap-highlight-color: transparent; 
+    }
+    html, body { 
+      height: 100%; 
+      width: 100%; 
+    }
+    html, body { 
+      touch-action: manipulation; 
+      -webkit-user-select: none; 
+      user-select: none; 
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+      height: 100vh;
+      width: 100vw;
+      background-color: #16610e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow: hidden;
+    }
+
+    /* Main Container */
+    .shredding-container {
+      background-color: #a0c878;
+      border-radius: 20px;
+      padding: 60px 50px;
+      width: 100%;
+      max-width: 800px;
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: fadeInScale 0.5s ease-out;
+      border: 4px solid #8ab86a;
+      position: relative;
+      overflow: hidden;
+      min-height: 350px;
+    }
+
+    /* Decorative corner accents */
+    .shredding-container::before,
+    .shredding-container::after {
+      content: '';
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      z-index: 0;
+    }
+
+    .shredding-container::before {
+      top: -75px;
+      left: -75px;
+    }
+
+    .shredding-container::after {
+      bottom: -75px;
+      right: -75px;
+    }
+
+    /* Content wrapper */
+    .shredding-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+
+    /* Shredder Icon */
+    .shredder-icon {
+      font-size: 100px;
+      animation: pulse 1.5s ease-in-out infinite;
+      display: block;
+    }
+
+    /* Title */
+    .shredding-title {
+      font-size: 48px;
+      font-weight: 800;
+      color: #0a3a0a;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin: 0;
+      line-height: 1;
+      animation: slideDown 0.6s ease-out;
+    }
+
+    /* Subtitle/Status */
+    .shredding-status {
+      font-size: 24px;
+      color: #2d5a27;
+      font-weight: 600;
+      margin: 0;
+      animation: slideUp 0.6s ease-out 0.2s both;
+    }
+
+    /* Loading indicator */
+    .loading-indicator {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+      animation: slideUp 0.6s ease-out 0.4s both;
+    }
+
+    .loading-dot {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background-color: #16610e;
+      animation: bounce 1.4s infinite;
+    }
+
+    .loading-dot:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    .loading-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .loading-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    /* Progress bar */
+    .progress-bar-container {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 30px;
+      animation: slideUp 0.6s ease-out 0.6s both;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #16610e, #8bc34a);
+      width: 0%;
+      animation: progressing 20s ease-in-out infinite;
+      border-radius: 10px;
+    }
+
+    /* Info text */
+    .shredding-info {
+      font-size: 16px;
+      color: #2d5a27;
+      font-weight: 500;
+      margin-top: 20px;
+      line-height: 1.6;
+      animation: slideUp 0.6s ease-out 0.8s both;
+    }
+
+    /* Animations */
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1);
+      }
+    }
+
+    @keyframes bounce {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    @keyframes progressing {
+      0% {
+        width: 0%;
+      }
+      50% {
+        width: 100%;
+      }
+      100% {
+        width: 0%;
+      }
+    }
+
+    /* Responsive adjustments */
+    @media (max-height: 500px) {
+      .shredding-container {
+        padding: 40px 30px;
+        min-height: 300px;
+      }
+
+      .shredding-title {
+        font-size: 36px;
+      }
+
+      .shredding-status {
+        font-size: 20px;
+      }
+
+      .shredder-icon {
+        font-size: 70px;
+      }
+
+      .shredding-content {
+        gap: 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .shredding-container {
+        padding: 40px 25px;
+      }
+
+      .shredding-title {
+        font-size: 40px;
+      }
+
+      .shredder-icon {
+        font-size: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Shredding Container -->
+  <div class="shredding-container">
+    <div class="shredding-content">
+      <!-- Shredder Icon -->
+      <div class="shredder-icon"></div>
+
+      <!-- Title -->
+      <h1 class="shredding-title">SHREDDING</h1>
+
+      <!-- Status -->
+      <p class="shredding-status" id="shredding-status">PLEASE WAIT</p>
+
+      <!-- Loading Indicator -->
+      <div class="loading-indicator">
+        <div class="loading-dot"></div>
+        <div class="loading-dot"></div>
+        <div class="loading-dot"></div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-bar-container">
+        <div class="progress-bar"></div>
+      </div>
+
+      <!-- Info Text -->
+      <p class="shredding-info">
+        Do not attempt to inert input.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // Initialize socket connection for messages
+      let socket = null;
+      let shredding = false;
+      let autoReturnTimeout = null;
+      let isNavigating = false; // Flag to allow navigation without prompt
+
+      // Initialize Socket.IO if not already done by global.js
+      function initSocket() {
+        if (typeof io === 'undefined') {
+          console.error('[Shredding] Socket.IO not available');
+          return;
+        }
+
+        socket = io(window.location.origin, {
+          transports: ['websocket'],
+          reconnection: true,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 5000,
+          forceNew: false
+        });
+
+        socket.on('connect', function() {
+          console.log('[Shredding] Connected to server');
+        });
+
+        socket.on('message', function(data) {
+          handleArduinoMessage(data);
+        });
+
+        socket.on('disconnect', function(reason) {
+          console.log('[Shredding] Disconnected:', reason);
+        });
+
+        socket.on('connect_error', function(error) {
+          console.error('[Shredding] Connection error:', error);
+        });
+      }
+
+      // Handle Arduino messages
+      function handleArduinoMessage(message) {
+        console.log('[Shredding] Arduino message:', message);
+
+        if (message === 'STARTSHREDDING' || message.includes('STARTSHREDDING')) {
+          console.log('[Shredding] Starting shredding process');
+          shredding = true;
+          document.getElementById('shredding-status').textContent = 'PLS WAIT';
+
+          // Clear any existing timeout
+          if (autoReturnTimeout) {
+            clearTimeout(autoReturnTimeout);
+          }
+        } else if (message === 'STOPSHREDDING' || message.includes('STOPSHREDDING')) {
+          console.log('[Shredding] Stopping shredding process');
+          shredding = false;
+          document.getElementById('shredding-status').textContent = 'COMPLETED';
+
+          // Mark that we're navigating to suppress beforeunload prompt
+          isNavigating = true;
+
+          // Return to dashboard immediately without delay
+          console.log('[Shredding] Navigating to dashboard page');
+          window.location.href = '/dashboard';
+        }
+      }
+
+      // Keyboard shortcuts for testing
+      document.addEventListener('keydown', function(e) {
+        // F3 = Invalid input (for testing)
+        if (e.key === 'F3') {
+          e.preventDefault();
+          console.log('[Shredding] F3 pressed - Simulating invalid input');
+          handleArduinoMessage('INVALID:bottle');
+          return;
+        }
+
+        // F4 = Valid input (for testing)
+        if (e.key === 'F4') {
+          e.preventDefault();
+          console.log('[Shredding] F4 pressed - Simulating valid input');
+          handleArduinoMessage('VALID:bottle');
+          return;
+        }
+
+        // F5 = Start shredding
+        if (e.key === 'F5') {
+          e.preventDefault();
+          console.log('[Shredding] F5 pressed - Starting shredding');
+          handleArduinoMessage('STARTSHREDDING');
+          return;
+        }
+
+        // F6 = Stop shredding
+        if (e.key === 'F6') {
+          e.preventDefault();
+          console.log('[Shredding] F6 pressed - Stopping shredding');
+          handleArduinoMessage('STOPSHREDDING');
+          return;
+        }
+      });
+
+      // Initialize when page loads
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('[Shredding] Page loaded');
+        initSocket();
+        shredding = true;
+
+        // Safety timeout - auto return to dashboard after 5 minutes if not stopped
+        setTimeout(() => {
+          if (shredding) {
+            console.log('[Shredding] Safety timeout triggered - returning to dashboard');
+            isNavigating = true;
+            window.location.href = '/dashboard';
+          }
+        }, 300000); // 5 minutes
+      });
+
+      // Prevent navigation away from page during shredding
+      window.addEventListener('beforeunload', function(e) {
+        // If we're intentionally navigating or not shredding, allow it
+        if (isNavigating || !shredding) {
+          return;
+        }
+
+        // Otherwise, prevent navigation
+        e.preventDefault();
+        e.returnValue = '';
+        return false;
+      });
+
+      // Expose for manual control if needed
+      window.shredding = {
+        start: function() {
+          console.log('[Shredding] Manual start');
+          shredding = true;
+          isNavigating = false;
+          document.getElementById('shredding-status').textContent = 'PLS WAIT';
+        },
+        stop: function() {
+          console.log('[Shredding] Manual stop');
+          shredding = false;
+          isNavigating = true;
+          document.getElementById('shredding-status').textContent = 'COMPLETED';
+          window.location.href = '/dashboard';
+        },
+        return: function() {
+          console.log('[Shredding] Manual return');
+          isNavigating = true;
+          window.location.href = '/dashboard';
+        }
+      };
+    })();
+  </script>
+</body>
+</html>

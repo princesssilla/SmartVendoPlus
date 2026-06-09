@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="en">
+<head>
+   <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+  <!-- Add these lines after your existing styles -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+<script src="{{ url_for('static', filename='js/global.js') }}"></script>
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=800, height=480, initial-scale=1, user-scalable=no" />
+  <title>SmartVendo+ — Register RFID</title>
+  <meta name="theme-color" content="#16571a">
+  <style>
+    /* Reset + touch-friendly defaults */
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      -webkit-tap-highlight-color: transparent; 
+    }
+    html, body { 
+      height: 100%; 
+      width: 100%; 
+    }
+    html, body { 
+      touch-action: manipulation; 
+      -webkit-user-select: none; 
+      user-select: none; 
+    }
+    body {
+      font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+      height: 100vh;
+      width: 100vw;
+      background-color: #16610e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Professional Container */
+    .register-container {
+      background-color: #a0c878;
+      border-radius: 20px;
+      padding: 20px 40px 20px 40px; /* top, right, bottom, left */
+      width: 100%;
+      max-width: 700px;
+      box-shadow: 0 30px 70px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeInScale 0.5s ease-out;
+      border: 4px solid #8ab86a;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Decorative corner accents */
+    .register-container::before,
+    .register-container::after {
+      content: '';
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+      z-index: 0;
+    }
+
+    .register-container::before {
+      top: -75px;
+      left: -75px;
+    }
+
+    .register-container::after {
+      bottom: -75px;
+      right: -75px;
+    }
+
+    /* Header */
+    .register-header {
+      text-align: center;
+      margin-bottom: 20px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    .register-logo {
+      width: 80px;
+      height: auto;
+      margin: 0 auto 10px;
+      display: block;
+    }
+
+    .register-title {
+      font-size: 27px;
+      font-weight: 800;
+      color: #0a3a0a;
+      margin-bottom: 1px;
+      margin-top: 1px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .register-titles {
+      font-size: 20px;
+      font-weight: 600;
+      color: #0a3a0a;
+      margin-bottom: 5px;
+      margin-top: 20px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+
+    .register-subtitle {
+      font-size: 13px;
+      color: #2d5a27;
+      font-weight: 500;
+      line-height: 1.5;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* Progress Steps */
+    .progress-steps {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 500px;
+      margin-bottom: 1px;
+      margin-top: 1px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+    }
+
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      color: #2d5a27;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      margin-bottom: 10px;
+      transition: all 0.3s ease;
+      border: 3px solid transparent;
+    }
+
+    .step.active .step-circle {
+      background: #0a3a0a;
+      color: white;
+      border-color: #0f4a0a;
+      box-shadow: 0 4px 15px rgba(10, 58, 10, 0.3);
+    }
+
+    .step.completed .step-circle {
+      background: #16610e;
+      color: white;
+      border-color: #1e7a14;
+    }
+
+    .step-text {
+      font-size: 14px;
+      color: #2d5a27;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .step-line {
+      position: absolute;
+      top: 20px;
+      left: 20%;
+      right: 20%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      z-index: 0;
+    }
+
+    /* RFID Reader */
+    .rfid-reader {
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .rfid-reader:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.2);
+      background: #8ab86a;
+    }
+
+    .rfid-icon {
+      font-size: 100px;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .rfid-text {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0a3a0a;
+      margin-bottom: 10px;
+    }
+
+    .rfid-instruction {
+      font-size: 16px;
+      color: #666;
+      font-weight: 500;
+    }
+
+    /* Loading Animation */
+    .rfid-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(22, 97, 14, 0.1);
+      border-radius: 50%;
+      border-top-color: #16610e;
+      animation: spin 1s linear infinite;
+    }
+
+    .loading-text {
+      font-size: 18px;
+      color: #0a3a0a;
+      font-weight: 600;
+    }
+
+    /* Success Message */
+    .success-message {
+      display: none;
+      text-align: center;
+      margin-top: 20px; /* This creates the space */
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .success-icon {
+      font-size: 64px;
+      color: #16610e;
+      margin: 1px auto;
+      display: block;
+    }
+
+    .success-text {
+      font-size: 20px;
+      color: #0a3a0a;
+      font-weight: 600;
+      margin-bottom: 1px;
+      margin-top: 1px;
+    }
+
+   .card-id {
+      font-size: 18px;
+      color: #ffffff;
+      background: rgba(1, 109, 19, 0.8);
+      padding: 10px 20px;
+      border-radius: 10px;
+      margin: 1px auto; /* Changed from 1px auto */
+      max-width: 300px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    /* Save Data Option */
+    .save-option {
+      display: none;
+      width: 100%; /* Changed from 200% */
+      max-width: 600px;
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 12px; /* Increased from 1px */
+      padding: 5px 40px 20px 40px; /* top, right, bottom, left */
+      text-align: center;
+      margin-top: 15px; /* Increased from 1px */
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      border: 1px solid #8ab86a;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .save-title {
+      font-size: 20px;
+      color: #0a3a0a;
+      margin-bottom: 15px;
+      font-weight: 700;
+    }
+
+    .save-note {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+
+    .save-note strong {
+      color: #0a3a0a;
+    }
+
+    .save-buttons {
+      display: flex;
+      gap: 15px;
+    }
+
+    .save-btn {
+      flex: 1;
+      appearance: none;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 18px;
+      padding: 18px 25px;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .save-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .save-btn:active {
+      transform: translateY(-1px);
+    }
+
+    .save-yes {
+      background: linear-gradient(135deg, #0a3a0a, #16610e);
+      color: white;
+      border: 3px solid #0f4a0a;
+      padding: 10px 30px 10px 30px;
+    }
+
+    .save-yes:hover {
+      background: linear-gradient(135deg, #16610e, #165f0e);
+    }
+
+    .save-no {
+      background: linear-gradient(135deg, #ffffff, #f8fff8);
+      color: #0a3a0a;
+      border: 3px solid #8bc34a;
+    }
+
+    .save-no:hover {
+      background: linear-gradient(135deg, #ffffff, #ffffff);
+    }
+
+    /* Loading Overlay - REMOVED FROM INITIAL VIEW */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(22, 97, 14, 0.98);
+      z-index: 1000;
+      backdrop-filter: blur(15px);
+      flex-direction: column;
+      gap: 30px;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .loading-overlay.show {
+      display: flex;
+    }
+
+    /* Back Button */
+    .back-btn {
+      position: fixed;
+      top: 25px;
+      left: 25px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      width: 55px;
+      height: 55px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: white;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: all 0.2s ease;
+      z-index: 100;
+      font-weight: bold;
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateX(-3px);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Animations */
+    @keyframes fadeInScale {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(22, 97, 14, 0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 15px rgba(22, 97, 14, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(22, 97, 14, 0);
+      }
+    }
+
+    .rfid-reader.pulsing {
+      animation: pulse 2s infinite;
+    }
+
+    /* Responsive Design */
+    @media (max-height: 600px) {
+      .register-container {
+        padding: 30px 40px 40px 40px; /* top, right, bottom, left */
+        max-width: 90%;
+      }
+      
+      .register-header {
+        margin-bottom: 20px;
+      }
+      
+      .register-logo {
+        width: 60px;
+        margin-bottom: 15px;
+      }
+      
+      .register-title {
+        font-size: 24px;
+      }
+      
+      .register-subtitle {
+        font-size: 16px;
+      }
+      
+      .progress-steps {
+        margin-bottom: 1px;
+        margin-top: 1px;
+      }
+      
+      .rfid-reader {
+        padding: 25px 20px;
+        margin-bottom: 5px;
+      }
+      
+      .rfid-icon {
+        font-size: 80px;
+      }
+      
+      .save-option {
+         padding: 10px 20px 10px 20px;
+        margin-top: 20px;
+      }
+      
+      .save-btn {
+         padding: 10px 20px 10px 20px;
+        font-size: 30px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 15px;
+      }
+      
+      .register-container {
+        padding: 30px 40px 40px 40px; /* top, right, bottom, left */
+        max-width: 95%;
+      }
+      
+      .register-title {
+        font-size: 28px;
+      }
+      
+      .step-text {
+        font-size: 12px;
+      }
+      
+      .rfid-reader {
+        max-width: 100%;
+      }
+      
+      .save-buttons {
+        flex-direction: column;
+      }
+      
+      .back-btn {
+        top: 15px;
+        left: 15px;
+        width: 50px;
+        height: 50px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .register-container {
+       padding: 30px 40px 40px 40px; /* top, right, bottom, left */
+        border-radius: 16px;
+      }
+      
+      .register-title {
+        font-size: 22px;
+      }
+      
+      .step-circle {
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+      }
+      
+      .rfid-text {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Back Button -->
+  <button class="back-btn" onclick="goBack()" aria-label="Go back">←</button>
+
+  <!-- Main Register Container -->
+  <div class="register-container">
+    <!-- Header --> 
+    <div class="register-header">
+      <img src="{{ url_for('static', filename='images/logo1.png') }}" alt="SmartVendo+ Logo" class="register-logo">
+      <h1 class="register-title">REGISTER RFID CARD</h1>
+    </div>
+
+    <!-- Progress Steps -->
+    <div class="progress-steps">
+      <div class="step-line"></div>
+      <div class="step completed">
+        <div class="step-circle">1</div>
+        <div class="step-text">Agreement</div>
+      </div>
+      <div class="step active">
+        <div class="step-circle">2</div>
+        <div class="step-text">RFID Registration</div>
+      </div>
+      <div class="step">
+        <div class="step-circle">3</div>
+        <div class="step-text">Complete</div>
+      </div>
+    </div>
+
+    <h1 class="register-titles">Tap your RFID CARD</h1>
+
+    <!-- RFID Reader -->
+    <div id="rfidReader" class="rfid-reader pulsing">
+      <!-- Loading Animation - ALWAYS SHOWING INITIALLY -->
+      <div id="loadingAnimation" class="rfid-loading">
+        <div class="spinner"></div>
+        <div class="loading-text">Waiting for RFID card...</div>
+      </div>
+    </div>
+
+    <!-- Success Message -->
+    <div id="successMessage" class="success-message">
+      <div class="card-id" id="cardIdDisplay"></div>
+    </div>
+
+    <!-- Save Data Option -->
+    <div id="saveOption" class="save-option">
+      <div class="save-title">SAVE YOUR CREDENTIALS?</div>
+      <div class="save-note">
+        Your credentials will be saved for <strong>3 months only</strong>. After this period, all data including earned rewards will be automatically deleted.
+      </div>
+      <div class="save-buttons">
+        <button id="saveNoBtn" class="save-btn save-no">NO, DON'T SAVE</button>
+        <button id="saveYesBtn" class="save-btn save-yes">YES, SAVE DATA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay - HIDDEN INITIALLY -->
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">Processing...</div>
+  </div>
+
+<script>
+(function () {
+  const rfidReader = document.getElementById('rfidReader');
+  const loadingAnimation = document.getElementById('loadingAnimation');
+  const successMessage = document.getElementById('successMessage');
+  const saveOption = document.getElementById('saveOption');
+  const cardIdDisplay = document.getElementById('cardIdDisplay');
+  const saveYesBtn = document.getElementById('saveYesBtn');
+  const saveNoBtn = document.getElementById('saveNoBtn');
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  const loadingText = document.getElementById('loadingText');
+  
+  // Check if user came from agreement page
+  if (!localStorage.getItem('sv_agreement_accepted')) {
+    window.location.href = '/signup';
+    return;
+  }
+  
+  let detectedCardId = '';
+  let isScanning = false;
+  let messageHandlerId = null;
+  let checkInterval = null;
+  
+  // Prevent context menu
+  window.addEventListener('contextmenu', (e) => e.preventDefault());
+  
+  // Function to start RFID scan - SIMPLIFIED LIKE id-login.html
+  function startRFIDScan() {
+    if (isScanning) return;
+    
+    console.log('[Signup-RFID] Starting RFID scan...');
+    isScanning = true;
+    
+    // Update loading text
+    const loadingTextEl = loadingAnimation.querySelector('.loading-text');
+    loadingTextEl.textContent = 'Tap RFID card...';
+    rfidReader.classList.add('pulsing');
+    
+    // Send RFID scan request via WebSocket
+    if (window.sendToArduino) {
+      console.log('[Signup-RFID] Sending RFID_REQUEST:SIGNUP');
+      window.sendToArduino('RFID_REQUEST:SIGNUP')
+        .then(() => {
+          console.log('[Signup-RFID] RFID scan request sent');
+          
+          // Start checking for RFID result (like id-login.html does)
+          if (checkInterval) {
+            clearInterval(checkInterval);
+          }
+          checkInterval = setInterval(checkRFIDResult, 500);
+        })
+        .catch((error) => {
+          console.error('[Signup-RFID] Failed to send request:', error);
+          loadingTextEl.textContent = 'Connection error. Tap to retry.';
+          rfidReader.classList.remove('pulsing');
+          isScanning = false;
+        });
+    } else {
+      loadingTextEl.textContent = 'System not ready. Please refresh.';
+      rfidReader.classList.remove('pulsing');
+      isScanning = false;
+    }
+  }
+  
+  // Function to check for RFID result (like id-login.html)
+  function checkRFIDResult() {
+    if (window.sendToArduino && isScanning) {
+      // Send check request
+      window.sendToArduino('CHECK_RFID_RESULT')
+        .catch(error => {
+          console.error('[Signup-RFID] Check result error:', error);
+        });
+    }
+  }
+  
+  // Setup message handler
+  function setupMessageHandler() {
+    if (window.onWebSocketMessage && !messageHandlerId) {
+      messageHandlerId = window.onWebSocketMessage(function(message) {
+        console.log('[Signup-RFID] WebSocket message:', message);
+        
+        if (message === 'RFID_SCAN_STARTED') {
+          console.log('[Signup-RFID] RFID scan started');
+          const loadingTextEl = loadingAnimation.querySelector('.loading-text');
+          loadingTextEl.textContent = 'Ready - Tap RFID card now...';
+        }
+        else if (message.startsWith('RFID_SIGNUP_OK:')) {
+          handleSignupSuccess(message);
+        }
+        else if (message === 'RFID_SIGNUP_FAIL') {
+          showSignupFailMessage();
+        }
+        else if (message === 'RFID_STILL_WAITING') {
+          // Still waiting for RFID - show dots animation
+          const dots = '.'.repeat((Date.now() % 3000) / 1000);
+          const loadingTextEl = loadingAnimation.querySelector('.loading-text');
+          loadingTextEl.textContent = `Waiting for RFID card${dots}`;
+        }
+      });
+    }
+  }
+  
+  // Handle successful RFID signup
+  function handleSignupSuccess(message) {
+    console.log('[Signup-RFID] RFID signup success:', message);
+    
+    // Stop checking interval
+    if (checkInterval) {
+      clearInterval(checkInterval);
+      checkInterval = null;
+    }
+    
+    try {
+      // Parse the message data
+      const data = JSON.parse(message.replace('RFID_SIGNUP_OK:', ''));
+      
+      // Get the RFID UID from the data
+      detectedCardId = data.uid || data.rfid_uid;
+      console.log('[Signup-RFID] Detected RFID UID:', detectedCardId);
+      
+      // Remove animations
+      rfidReader.classList.remove('pulsing');
+      loadingAnimation.style.display = 'none';
+      
+      // Show success message with card ID
+      cardIdDisplay.textContent = detectedCardId;
+      successMessage.style.display = 'block';
+      
+      // Store the detected RFID in localStorage temporarily
+      localStorage.setItem('sv_pending_rfid', detectedCardId);
+      
+      // Show save option after delay
+      setTimeout(() => {
+        saveOption.style.display = 'block';
+      }, 1000);
+      
+      isScanning = false;
+    } catch (error) {
+      console.error('[Signup-RFID] Error parsing success data:', error);
+      showSignupFailMessage();
+    }
+  }
+  
+  // Show signup fail message
+  function showSignupFailMessage() {
+    console.log('[Signup-RFID] RFID signup failed - card already registered');
+    
+    // Stop checking interval
+    if (checkInterval) {
+      clearInterval(checkInterval);
+      checkInterval = null;
+    }
+    
+    // Reset scanning state
+    const loadingTextEl = loadingAnimation.querySelector('.loading-text');
+    loadingTextEl.textContent = 'Card already registered. Tap to try another.';
+    rfidReader.classList.remove('pulsing');
+    isScanning = false;
+  }
+  
+  // Show loading overlay
+  function showLoading(message) {
+    loadingText.textContent = message;
+    loadingOverlay.classList.add('show');
+  }
+  
+  // Hide loading overlay
+  function hideLoading() {
+    loadingOverlay.classList.remove('show');
+  }
+  
+  // RFID Reader Click Handler - for manual retry
+  rfidReader.addEventListener('click', function() {
+    if (!isScanning) {
+      startRFIDScan();
+    }
+  });
+  
+  // Save Yes button
+  saveYesBtn.addEventListener('click', function() {
+    if (detectedCardId) {
+      localStorage.setItem('sv_pending_rfid', detectedCardId);
+    }
+    window.location.href = '/signup-complete';
+  });
+  
+  // Save No button
+  saveNoBtn.addEventListener('click', function() {
+    showLoading('Registration cancelled. Returning...');
+    setTimeout(() => {
+      window.location.href = '/welcome';
+    }, 1000);
+  });
+  
+  // Initialize page - SIMPLIFIED LIKE id-login.html
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('[Signup-RFID] Page loaded');
+    
+    // Setup message handler
+    setupMessageHandler();
+    
+    // Initialize WebSocket
+    if (window.initWebSocket) {
+      window.initWebSocket();
+    }
+    
+    // Start RFID scan after a short delay (like id-login.html)
+    setTimeout(() => {
+      console.log('[Signup-RFID] Starting automatic RFID scan');
+      startRFIDScan();
+    }, 1000);
+  });
+  
+  // Clean up message handler when leaving page
+  window.addEventListener('beforeunload', function() {
+    if (messageHandlerId && window.removeWebSocketMessage) {
+      window.removeWebSocketMessage(messageHandlerId);
+    }
+    if (checkInterval) {
+      clearInterval(checkInterval);
+    }
+  });
+})();
+
+// Back function
+function goBack() {
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  const loadingText = document.getElementById('loadingText');
+  loadingText.textContent = 'Returning to welcome...';
+  loadingOverlay.classList.add('show');
+  
+  setTimeout(() => {
+    window.location.href = '/welcome';
+  }, 800);
+}
+</script>
+</body>
+</html>
