@@ -1,0 +1,209 @@
+<!-- Add this JavaScript function to the dashboard.html script section -->
+<script>
+async function loadNotificationsPage() {
+    const pageContainer = document.getElementById('pageContainer');
+    
+    try {
+        // Fetch maintenance items
+        const maintenanceResponse = await fetch('/api/admin/maintenance/list', {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        
+        let maintenanceItems = [];
+        if (maintenanceResponse.ok) {
+            const maintenanceData = await maintenanceResponse.json();
+            if (maintenanceData.success) {
+                maintenanceItems = maintenanceData.maintenance_items || [];
+            }
+        }
+        
+        // Fetch notifications
+        const response = await fetch('/api/admin/notifications', {
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        
+        const data = await response.json();
+        const notifications = data.notifications || [];
+        const unreadCount = data.unread_count || 0;
+        
+        pageContainer.innerHTML = `
+            <div style="padding: 15px;">
+                <button onclick="loadPage('dashboard')" style="background: linear-gradient(135deg, #0a3a0a, #16610e); color: white; border: none; padding: 12px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; width: 100%; max-width: 300px; margin-left: auto; margin-right: auto;">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </button>
+                
+                <h2 style="color: #0a3a0a; margin-bottom: 20px; font-size: 22px; display: flex; align-items: center; gap: 10px; justify-content: center;">
+                    <i class="fas fa-bell" style="color: #a0c878;"></i> System Alerts & Maintenance
+                </h2>
+                
+                <!-- Maintenance Items Section -->
+                <div style="background: rgba(255, 179, 71, 0.1); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 2px solid #ffb347;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="color: #0a3a0a; margin: 0; font-size: 18px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-tools" style="color: #ff9500;"></i> Items Under Maintenance
+                        </h3>
+                        ${maintenanceItems.length > 0 ? `
+                            <button onclick="clearAllMaintenance()" style="background: linear-gradient(135deg, #388e3c, #4caf50); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-check-double"></i> Clear All
+                            </button>
+                        ` : ''}
+                    </div>
+                    
+                    <div id="maintenanceList">
+                        ${maintenanceItems.length > 0 ? 
+                            maintenanceItems.map(item => `
+                                <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; border-left: 4px solid #ff9500; box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 700; color: #0a3a0a; font-size: 16px; margin-bottom: 5px; text-transform: capitalize;">
+                                            <i class="fas fa-exclamation-triangle" style="color: #ff9500; margin-right: 8px;"></i>
+                                            ${item.item_type}
+                                        </div>
+                                        <div style="font-size: 13px; color: #666; margin-bottom: 3px;">
+                                            Reason: ${item.reason}
+                                        </div>
+                                        <div style="font-size: 12px; color: #999;">
+                                            <i class="far fa-clock" style="margin-right: 5px;"></i>
+                                            ${item.timestamp ? new Date(item.timestamp).toLocaleString() : 'Unknown'}
+                                        </div>
+                                    </div>
+                                    <button onclick="clearSpecificMaintenance('${item.item_type}')" style="background: linear-gradient(135deg, #388e3c, #4caf50); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+                                        <i class="fas fa-check"></i> Clear
+                                    </button>
+                                </div>
+                            `).join('') : 
+                            `
+                            <div style="text-align: center; padding: 30px; color: #666;">
+                                <i class="fas fa-check-circle" style="font-size: 48px; color: #388e3c; margin-bottom: 15px; display: block;"></i>
+                                <h3 style="color: #388e3c; margin-bottom: 10px;">All Systems Operational</h3>
+                                <p style="font-size: 14px;">No items are currently under maintenance.</p>
+                            </div>
+                            `
+                        }
+                    </div>
+                </div>
+                
+                <!-- Regular Notifications Section -->
+                <div style="background: rgba(255, 255, 255, 0.95); border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(10, 58, 10, 0.08); border: 1px solid rgba(160, 200, 120, 0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="color: #0a3a0a; margin: 0; font-size: 18px; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-bell" style="color: #a0c878;"></i> System Notifications
+                            <span style="background: ${unreadCount > 0 ? '#ff6b6b' : '#a0c878'}; color: white; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                                ${unreadCount}
+                            </span>
+                        </h3>
+                        ${notifications.length > 0 ? `
+                            <button onclick="clearAllNotifications()" style="background: linear-gradient(135deg, #ff9500, #ffb347); color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-trash"></i> Clear All
+                            </button>
+                        ` : ''}
+                    </div>
+                    
+                    <div id="notificationsList">
+                        ${notifications.length > 0 ? 
+                            notifications.map(notification => `
+                                <div style="background: white; border-radius: 10px; padding: 15px; margin-bottom: 10px; border-left: 4px solid ${
+                                    notification.severity === 'error' ? '#ff6b6b' : 
+                                    notification.severity === 'warning' ? '#ffb347' : 
+                                    notification.severity === 'success' ? '#a0c878' : '#3498db'
+                                }; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                                        <div style="flex: 1;">
+                                            <h4 style="color: #0a3a0a; margin: 0 0 5px 0; font-size: 15px; font-weight: 700;">
+                                                ${notification.title}
+                                                ${!notification.is_read ? '<span style="background: #ff6b6b; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-left: 8px;">NEW</span>' : ''}
+                                            </h4>
+                                            <div style="font-size: 12px; color: #666;">
+                                                <i class="far fa-clock" style="margin-right: 5px;"></i>
+                                                ${new Date(notification.created_at).toLocaleString()}
+                                            </div>
+                                        </div>
+                                        <div style="background: ${
+                                            notification.severity === 'error' ? 'rgba(255, 107, 107, 0.1)' : 
+                                            notification.severity === 'warning' ? 'rgba(255, 179, 71, 0.1)' : 
+                                            notification.severity === 'success' ? 'rgba(160, 200, 120, 0.1)' : 'rgba(52, 152, 219, 0.1)'
+                                        }; color: ${
+                                            notification.severity === 'error' ? '#d32f2f' : 
+                                            notification.severity === 'warning' ? '#ff8a00' : 
+                                            notification.severity === 'success' ? '#388e3c' : '#2980b9'
+                                        }; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase;">
+                                            ${notification.severity}
+                                        </div>
+                                    </div>
+                                    <p style="color: #2d5a27; margin: 0; font-size: 13px; line-height: 1.5;">
+                                        ${notification.message}
+                                    </p>
+                                </div>
+                            `).join('') : 
+                            `
+                            <div style="text-align: center; padding: 30px; color: #666;">
+                                <i class="fas fa-bell-slash" style="font-size: 48px; color: #e0e0e0; margin-bottom: 15px; display: block;"></i>
+                                <h3 style="color: #2d5a27; margin-bottom: 10px;">No Notifications</h3>
+                                <p style="font-size: 14px;">All systems are running normally.</p>
+                            </div>
+                            `
+                        }
+                    </div>
+                </div>
+            </div>
+        `;
+        
+    } catch (error) {
+        console.error('Error loading notifications:', error);
+        showNotification('Error loading notifications', 'error');
+    }
+}
+
+async function clearSpecificMaintenance(itemType) {
+    try {
+        const response = await fetch('/api/admin/maintenance/clear', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminToken}`
+            },
+            body: JSON.stringify({ item_type: itemType })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification(`${itemType} maintenance cleared`, 'success');
+            setTimeout(() => loadPage('notification'), 500);
+        } else {
+            showNotification(`Failed to clear maintenance: ${data.error}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error clearing maintenance:', error);
+        showNotification('Error clearing maintenance', 'error');
+    }
+}
+
+async function clearAllMaintenance() {
+    if (!confirm('Clear all maintenance flags? This will re-enable all items.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/admin/command', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminToken}`
+            },
+            body: JSON.stringify({ command: 'CLEARALLMAINTENANCE' })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('All maintenance flags cleared', 'success');
+            setTimeout(() => loadPage('notification'), 500);
+        } else {
+            showNotification(`Failed to clear maintenance: ${data.error}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error clearing all maintenance:', error);
+        showNotification('Error clearing all maintenance', 'error');
+    }
+}
+</script>
